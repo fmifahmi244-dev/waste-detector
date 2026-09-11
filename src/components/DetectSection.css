@@ -1,0 +1,168 @@
+.detect-section {
+  position: relative;
+  z-index: 1;
+}
+
+.detect-area {
+  max-width: 860px;
+  margin: 0 auto 3rem;
+  position: relative;
+}
+
+.detect-result-wrap {
+  position: relative;
+  min-height: 200px;
+}
+
+.detect-hidden-img {
+  visibility: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.loading-spinner-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.loading-spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: var(--accent-1);
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner-2 {
+  inset: 10px;
+  border-top-color: var(--accent-2);
+  animation-duration: 0.7s;
+  animation-direction: reverse;
+}
+
+.loading-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+}
+
+.loading-sub {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.loading-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-1);
+  animation: dot-bounce 1.2s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* Error */
+.detect-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  background: rgba(249, 115, 22, 0.06);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.detect-error-icon { font-size: 2.5rem; }
+.detect-error p { color: var(--text-secondary); }
+
+/* How to */
+.how-to {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.how-to-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.how-to-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 480px) {
+  .how-to-steps { grid-template-columns: 1fr; }
+}
+
+.how-to-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.25rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition-base), border-color var(--transition-base);
+}
+
+.how-to-step:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-focus);
+}
+
+.how-to-step-icon { font-size: 1.75rem; }
+
+.how-to-step-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-1);
+}
+
+.how-to-step-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.4;
+}

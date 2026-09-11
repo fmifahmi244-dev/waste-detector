@@ -1,0 +1,392 @@
+/* =============================================
+   HYBRID UPLOADER WRAPPER
+   ============================================= */
+.hybrid-uploader {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+/* =============================================
+   TABS
+   ============================================= */
+.hybrid-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.hybrid-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.hybrid-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+  border-radius: 2px 2px 0 0;
+}
+
+.hybrid-tab:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.hybrid-tab.active {
+  color: var(--text-primary);
+}
+
+.hybrid-tab.active::after {
+  transform: scaleX(1);
+}
+
+/* =============================================
+   TAB CONTENT
+   ============================================= */
+.hybrid-content {
+  /* min-height ensures consistent layout */
+}
+
+/* =============================================
+   UPLOAD ZONE (file drag & drop)
+   ============================================= */
+.uploader-zone {
+  border: 2px dashed var(--border-focus);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.uploader-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.uploader-zone:hover::before,
+.uploader-zone.drag-over::before {
+  opacity: 1;
+}
+
+.uploader-zone:hover,
+.uploader-zone:focus {
+  background: rgba(255,255,255,0.02);
+  outline: none;
+  transform: scale(1.002);
+  box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.05);
+}
+
+.uploader-zone.drag-over {
+  border-color: var(--accent-1);
+  background: rgba(99, 102, 241, 0.08);
+  transform: scale(1.005);
+  box-shadow: inset 0 0 40px rgba(99, 102, 241, 0.1);
+}
+
+.uploader-zone.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.uploader-input {
+  display: none;
+}
+
+/* Icon */
+.uploader-icon-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploader-icon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(99, 102, 241, 0.25);
+  animation: pulse-ring 2.5s ease-out infinite;
+}
+
+.uploader-icon {
+  font-size: 2.8rem;
+  line-height: 1;
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Text */
+.uploader-text {
+  text-align: center;
+}
+
+.uploader-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.uploader-sub {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.uploader-link {
+  color: var(--accent-1);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.uploader-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Badge row */
+.uploader-types {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* =============================================
+   CAMERA WRAP
+   ============================================= */
+.camera-wrap {
+  position: relative;
+  min-height: 340px;
+  background: #000;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hidden canvas for capture */
+.camera-canvas {
+  display: none;
+}
+
+/* Live video */
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.camera-video.visible {
+  opacity: 1;
+}
+
+.camera-video.mirrored {
+  transform: scaleX(-1);
+}
+
+/* Placeholder (idle / loading / error) */
+.camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  z-index: 1;
+}
+
+.camera-placeholder .uploader-title {
+  margin-bottom: 0;
+}
+
+.cam-start-btn {
+  margin-top: 0.5rem;
+}
+
+.camera-error {
+  background: rgba(249, 115, 22, 0.05);
+}
+
+/* Spinner for loading state */
+.cam-spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent-1);
+  animation: spin 0.9s linear infinite;
+}
+
+/* Flash overlay */
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  z-index: 10;
+  animation: flash-fade 0.3s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes flash-fade {
+  0%   { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+/* ─── Camera controls bar ─── */
+.camera-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.25rem 2rem 1.5rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+
+/* Side control buttons (flip, stop) */
+.cam-ctrl-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.cam-ctrl-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.08);
+}
+
+.cam-flip-btn:active {
+  transform: scale(0.9) rotate(180deg);
+}
+
+.cam-stop-btn {
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-color: rgba(249, 115, 22, 0.5);
+  color: var(--residu-primary);
+}
+
+.cam-stop-btn:hover {
+  background: rgba(249, 115, 22, 0.2);
+}
+
+/* Shutter button */
+.cam-shutter-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.8);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.cam-shutter-btn:hover {
+  border-color: white;
+  transform: scale(1.06);
+}
+
+.cam-shutter-btn:active .cam-shutter-inner {
+  transform: scale(0.85);
+}
+
+.cam-shutter-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cam-shutter-inner {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: white;
+  transition: transform var(--transition-fast);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .uploader-zone {
+    padding: 2rem 1rem;
+  }
+
+  .camera-wrap {
+    min-height: 280px;
+  }
+
+  .camera-controls {
+    gap: 1.25rem;
+  }
+
+  .cam-shutter-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .cam-shutter-inner {
+    width: 46px;
+    height: 46px;
+  }
+}
