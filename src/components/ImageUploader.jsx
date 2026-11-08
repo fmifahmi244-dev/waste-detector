@@ -1,12 +1,35 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
+import { UploadIcon, CameraIcon, SwitchCameraIcon, CloseIcon, AlertIcon } from './Icons';
 import './ImageUploader.css';
 
-/* ─────────────────────────────────────────
-   Tab: Upload file (drag & drop / browse)
-───────────────────────────────────────── */
+const SAMPLE_PRESETS = [
+  {
+    id: 'anorganik-sample',
+    title: 'Botol Plastik PET',
+    category: 'Anorganik',
+    badgeClass: 'badge-anorganik',
+    src: '/samples/botol-plastik.jpg',
+  },
+  {
+    id: 'organik-sample',
+    title: 'Kulit Pisang',
+    category: 'Organik',
+    badgeClass: 'badge-organik',
+    src: '/samples/kulit-pisang.jpg',
+  },
+  {
+    id: 'residu-sample',
+    title: 'Kotak Styrofoam',
+    category: 'Residu',
+    badgeClass: 'badge-residu',
+    src: '/samples/kotak-styrofoam.jpg',
+  },
+];
+
 function UploadTab({ onImageSelect, disabled }) {
   const fileInputRef = useRef(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [loadingSample, setLoadingSample] = useState(null);
 
   const processFile = useCallback(
     (file) => {
@@ -22,8 +45,15 @@ function UploadTab({ onImageSelect, disabled }) {
     e.target.value = '';
   };
 
-  const handleDragOver = (e) => { e.preventDefault(); setIsDragOver(true); };
-  const handleDragLeave = () => setIsDragOver(false);
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -31,50 +61,90 @@ function UploadTab({ onImageSelect, disabled }) {
     if (file) processFile(file);
   };
 
+  const handleSelectSample = async (sample) => {
+    if (disabled) return;
+    setLoadingSample(sample.id);
+    try {
+      const response = await fetch(sample.src);
+      const blob = await response.blob();
+      const file = new File([blob], `${sample.id}.jpg`, { type: 'image/jpeg' });
+      onImageSelect({ file, url: sample.src });
+    } catch (err) {
+      console.error('Gagal memuat sampel foto:', err);
+    } finally {
+      setLoadingSample(null);
+    }
+  };
+
   return (
-    <div
-      className={`uploader-zone ${isDragOver ? 'drag-over' : ''} ${disabled ? 'disabled' : ''}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      onClick={() => !disabled && fileInputRef.current?.click()}
-      role="button"
-      tabIndex={0}
-      aria-label="Upload gambar sampah"
-      onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="uploader-input"
-        onChange={handleFileChange}
-        id="waste-image-input"
-      />
+    <div className="upload-tab-wrapper">
+      <div
+        className={`upload-zone ${isDragOver ? 'is-drag-over' : ''} ${disabled ? 'is-disabled' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="upload-input-hidden"
+          onChange={handleFileChange}
+          id="waste-file-input"
+          disabled={disabled}
+        />
 
-      <div className="uploader-icon-wrap">
-        <div className="uploader-icon-ring" />
-        <span className="uploader-icon">📂</span>
+        <div className="upload-zone-content">
+          <UploadIcon size={28} className="upload-icon-graphic" />
+          <div className="upload-copy">
+            <p className="upload-main-text">Tarik dan letakkan foto sampah ke area ini</p>
+            <p className="upload-sub-text">atau pilih foto langsung dari galeri berkas perangkat Anda.</p>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled}
+          >
+            Pilih Berkas Foto
+          </button>
+
+          <p className="upload-meta">Format foto: PNG, JPG, WebP. Maksimal 10 MB.</p>
+        </div>
       </div>
 
-      <div className="uploader-text">
-        <p className="uploader-title">Seret &amp; Lepas Foto Sampah</p>
-        <p className="uploader-sub">atau <span className="uploader-link">klik di sini</span> untuk memilih file</p>
-        <p className="uploader-hint">PNG, JPG, WEBP • Maks. 10MB</p>
-      </div>
+      {/* Preset Sampel Siap Uji */}
+      <div className="samples-section">
+        <div className="samples-header">
+          <span className="samples-title">Belum punya foto? Coba sampel uji cepat:</span>
+        </div>
 
-      <div className="uploader-types">
-        <span className="badge badge-organik">🌿 Organik</span>
-        <span className="badge badge-anorganik">♻️ Anorganik</span>
-        <span className="badge badge-residu">⚠️ Residu</span>
+        <div className="samples-grid">
+          {SAMPLE_PRESETS.map((sample) => (
+            <button
+              key={sample.id}
+              type="button"
+              className="sample-item-btn"
+              onClick={() => handleSelectSample(sample)}
+              disabled={disabled || loadingSample === sample.id}
+              title={`Uji sampel ${sample.title}`}
+            >
+              <div className="sample-thumbnail-box">
+                <img src={sample.src} alt={sample.title} className="sample-thumbnail-img" />
+              </div>
+              <div className="sample-btn-info">
+                <span className="sample-btn-name">{sample.title}</span>
+                <span className={`badge ${sample.badgeClass}`}>{sample.category}</span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────
-   Tab: Camera capture (live webcam)
-───────────────────────────────────────── */
 function CameraTab({ onImageSelect, disabled }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -82,15 +152,12 @@ function CameraTab({ onImageSelect, disabled }) {
 
   const [camState, setCamState] = useState('idle'); // idle | loading | active | error
   const [errorMsg, setErrorMsg] = useState('');
-  const [flash, setFlash] = useState(false);
-  const [facingMode, setFacingMode] = useState('environment'); // environment | user
+  const [facingMode, setFacingMode] = useState('environment');
 
-  // Start camera
   const startCamera = useCallback(async (mode = facingMode) => {
     setCamState('loading');
     setErrorMsg('');
 
-    // Stop existing stream first
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
     }
@@ -110,16 +177,15 @@ function CameraTab({ onImageSelect, disabled }) {
       console.error(err);
       const msg =
         err.name === 'NotAllowedError'
-          ? 'Izin kamera ditolak. Aktifkan izin kamera di pengaturan browser.'
+          ? 'Izin akses kamera ditolak pada peramban ini.'
           : err.name === 'NotFoundError'
-          ? 'Kamera tidak ditemukan di perangkat ini.'
-          : 'Kamera tidak bisa diakses. Coba refresh atau gunakan HTTPS.';
+          ? 'Perangkat kamera tidak ditemukan.'
+          : 'Kamera tidak dapat diakses saat ini.';
       setErrorMsg(msg);
       setCamState('error');
     }
   }, [facingMode]);
 
-  // Stop camera when tab unmounts
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -128,14 +194,12 @@ function CameraTab({ onImageSelect, disabled }) {
     };
   }, []);
 
-  // Flip camera (front/back)
   const flipCamera = async () => {
     const newMode = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(newMode);
     await startCamera(newMode);
   };
 
-  // Capture photo
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -145,16 +209,11 @@ function CameraTab({ onImageSelect, disabled }) {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
 
-    // Mirror if front camera
     if (facingMode === 'user') {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
     ctx.drawImage(video, 0, 0);
-
-    // Flash effect
-    setFlash(true);
-    setTimeout(() => setFlash(false), 300);
 
     canvas.toBlob(
       (blob) => {
@@ -168,99 +227,103 @@ function CameraTab({ onImageSelect, disabled }) {
     );
   };
 
-  return (
-    <div className="camera-wrap">
-      <canvas ref={canvasRef} className="camera-canvas" aria-hidden="true" />
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+    }
+    setCamState('idle');
+  };
 
-      {/* Idle: prompt to start */}
+  return (
+    <div className="camera-panel">
+      <canvas ref={canvasRef} className="camera-canvas-hidden" aria-hidden="true" />
+
       {camState === 'idle' && (
-        <div className="camera-placeholder">
-          <div className="uploader-icon-wrap">
-            <div className="uploader-icon-ring" />
-            <span className="uploader-icon">📷</span>
+        <div className="camera-idle-view">
+          <CameraIcon size={32} className="camera-icon-lead" />
+          <div className="camera-idle-copy">
+            <p className="camera-title">Pemindaian Citra Langsung</p>
+            <p className="camera-desc">Arahkan kamera ponsel atau komputer tepat ke objek sampah untuk pemindaian langsung.</p>
           </div>
-          <p className="uploader-title">Aktifkan Kamera</p>
-          <p className="uploader-sub">Foto langsung dari kamera perangkatmu</p>
           <button
-            className="btn btn-primary cam-start-btn"
+            type="button"
+            className="btn btn-primary"
             onClick={() => startCamera()}
             disabled={disabled}
-            id="camera-start-btn"
           >
-            🎥 Buka Kamera
+            Aktifkan Sensor Kamera
           </button>
         </div>
       )}
 
-      {/* Loading */}
       {camState === 'loading' && (
-        <div className="camera-placeholder">
-          <div className="cam-spinner" />
-          <p className="uploader-sub">Meminta izin kamera...</p>
+        <div className="camera-status-view">
+          <p className="camera-status-text">Menghubungkan ke modul kamera...</p>
         </div>
       )}
 
-      {/* Error */}
       {camState === 'error' && (
-        <div className="camera-placeholder camera-error">
-          <span style={{ fontSize: '2.5rem' }}>🚫</span>
-          <p className="uploader-title" style={{ color: 'var(--residu-primary)' }}>Kamera Tidak Tersedia</p>
-          <p className="uploader-sub" style={{ maxWidth: 300, textAlign: 'center' }}>{errorMsg}</p>
-          <button className="btn btn-outline" onClick={() => startCamera()} id="camera-retry-btn">
-            Coba Lagi
+        <div className="camera-error-view">
+          <AlertIcon size={24} className="camera-error-icon" />
+          <p className="camera-error-title">Akses kamera gagal</p>
+          <p className="camera-error-desc">{errorMsg}</p>
+          <button type="button" className="btn btn-secondary" onClick={() => startCamera()}>
+            Coba Kembali
           </button>
         </div>
       )}
 
-      {/* Active camera view */}
-      <video
-        ref={videoRef}
-        className={`camera-video ${camState === 'active' ? 'visible' : ''} ${facingMode === 'user' ? 'mirrored' : ''}`}
-        playsInline
-        muted
-        aria-label="Live camera preview"
-      />
+      <div className={`camera-viewfinder ${camState === 'active' ? 'is-visible' : ''}`}>
+        <video
+          ref={videoRef}
+          className={`camera-stream ${facingMode === 'user' ? 'is-mirrored' : ''}`}
+          playsInline
+          muted
+          aria-label="Tampilan pemindaian kamera langsung"
+        />
 
-      {/* Flash overlay */}
-      {flash && <div className="camera-flash" aria-hidden="true" />}
+        {/* Reticle / target pemindaian di tengah */}
+        <div className="camera-target-reticle" aria-hidden="true">
+          <span className="reticle-corner reticle-tl" />
+          <span className="reticle-corner reticle-tr" />
+          <span className="reticle-corner reticle-bl" />
+          <span className="reticle-corner reticle-br" />
+          <span className="reticle-hint">Posisikan objek di kotak ini</span>
+        </div>
+      </div>
 
-      {/* Camera controls */}
       {camState === 'active' && (
-        <div className="camera-controls">
-          {/* Flip */}
+        <div className="camera-bar">
           <button
-            className="cam-ctrl-btn cam-flip-btn"
+            type="button"
+            className="btn btn-secondary camera-bar-btn"
             onClick={flipCamera}
-            aria-label="Flip kamera"
-            title="Ganti kamera depan/belakang"
-            id="camera-flip-btn"
+            title="Ganti orientasi kamera"
+            aria-label="Ganti orientasi kamera"
           >
-            🔄
+            <SwitchCameraIcon size={16} />
+            <span>Balik Kamera</span>
           </button>
 
-          {/* Shutter */}
           <button
-            className="cam-shutter-btn"
+            type="button"
+            className="btn btn-primary camera-shutter"
             onClick={capturePhoto}
             disabled={disabled}
             aria-label="Ambil foto"
-            id="camera-shutter-btn"
           >
-            <span className="cam-shutter-inner" />
+            Pindai Sampah Ini
           </button>
 
-          {/* Stop */}
           <button
-            className="cam-ctrl-btn cam-stop-btn"
-            onClick={() => {
-              if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-              setCamState('idle');
-            }}
-            aria-label="Matikan kamera"
-            title="Matikan kamera"
-            id="camera-stop-btn"
+            type="button"
+            className="btn btn-secondary camera-bar-btn"
+            onClick={stopCamera}
+            title="Tutup kamera"
+            aria-label="Tutup kamera"
           >
-            ✕
+            <CloseIcon size={16} />
+            <span>Tutup</span>
           </button>
         </div>
       )}
@@ -268,42 +331,48 @@ function CameraTab({ onImageSelect, disabled }) {
   );
 }
 
-/* ─────────────────────────────────────────
-   Hybrid Uploader (tabs)
-───────────────────────────────────────── */
 export default function ImageUploader({ onImageSelect, disabled }) {
-  const [activeTab, setActiveTab] = useState('upload'); // 'upload' | 'camera'
+  const [activeTab, setActiveTab] = useState('upload');
 
   return (
-    <div className="hybrid-uploader">
-      {/* Tab switcher */}
-      <div className="hybrid-tabs" role="tablist">
+    <div className="uploader-card">
+      <div className="uploader-tabs" role="tablist" aria-label="Metode masukan gambar">
         <button
+          type="button"
           id="tab-upload"
           role="tab"
           aria-selected={activeTab === 'upload'}
-          className={`hybrid-tab ${activeTab === 'upload' ? 'active' : ''}`}
+          aria-controls="panel-upload"
+          className={`uploader-tab ${activeTab === 'upload' ? 'is-active' : ''}`}
           onClick={() => setActiveTab('upload')}
         >
-          <span>📂</span> Upload File
+          <UploadIcon size={16} />
+          <span>Unggah Berkas Foto</span>
         </button>
+
         <button
+          type="button"
           id="tab-camera"
           role="tab"
           aria-selected={activeTab === 'camera'}
-          className={`hybrid-tab ${activeTab === 'camera' ? 'active' : ''}`}
+          aria-controls="panel-camera"
+          className={`uploader-tab ${activeTab === 'camera' ? 'is-active' : ''}`}
           onClick={() => setActiveTab('camera')}
         >
-          <span>📷</span> Ambil Foto
+          <CameraIcon size={16} />
+          <span>Pemindaian Kamera</span>
         </button>
       </div>
 
-      {/* Tab content */}
-      <div className="hybrid-content">
+      <div className="uploader-body">
         {activeTab === 'upload' ? (
-          <UploadTab onImageSelect={onImageSelect} disabled={disabled} />
+          <div id="panel-upload" role="tabpanel" aria-labelledby="tab-upload">
+            <UploadTab onImageSelect={onImageSelect} disabled={disabled} />
+          </div>
         ) : (
-          <CameraTab onImageSelect={onImageSelect} disabled={disabled} />
+          <div id="panel-camera" role="tabpanel" aria-labelledby="tab-camera">
+            <CameraTab onImageSelect={onImageSelect} disabled={disabled} />
+          </div>
         )}
       </div>
     </div>

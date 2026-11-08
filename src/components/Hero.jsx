@@ -1,66 +1,131 @@
+import { useState } from 'react';
+import { WasteBinIllustration } from './WasteIllustrations';
 import './Hero.css';
 
 export default function Hero() {
+  const [activeBin, setActiveBin] = useState('organik');
+
+  const binInfo = {
+    organik: {
+      title: 'Tempat Sampah Hijau',
+      subtitle: 'Sampah Organik (Mudah Terurai)',
+      items: ['Sisa makanan', 'Kulit buah & sayur', 'Daun & ranting kebun', 'Ampas kopi & teh'],
+    },
+    anorganik: {
+      title: 'Tempat Sampah Biru',
+      subtitle: 'Sampah Anorganik (Dapat Didaur Ulang)',
+      items: ['Botol plastik PET', 'Kaleng aluminium', 'Kardus & kertas bersih', 'Botol & toples kaca'],
+    },
+    residu: {
+      title: 'Tempat Sampah Oranye / Abu',
+      subtitle: 'Sampah Residu (Non-Daur Ulang)',
+      items: ['Kemasan sachet makanan', 'Wadah styrofoam bekas', 'Popok sekali pakai', 'Kain & kapas kotor'],
+    },
+  }[activeBin];
+
   return (
-    <section className="hero">
-      <div className="container hero-content">
-        {/* Pill badge */}
-        <div className="hero-badge animate-fade-up">
-          <span className="hero-badge-dot" />
-          Didukung Teknologi AI
-        </div>
+    <section className="hero-section">
+      <div className="container">
+        <div className="hero-grid">
+          {/* Kolom Kiri: Teks & Aksi */}
+          <div className="hero-content">
+            <div className="hero-tag-wrap">
+              <span className="hero-live-dot" aria-hidden="true" />
+              <span className="hero-tag-text">Sistem Pemilahan Sampah Mandiri</span>
+            </div>
 
-        {/* Heading */}
-        <h1 className="hero-heading animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          Kenali Sampahmu,{' '}
-          <span className="gradient-text">Jaga Bumi Kita</span>
-        </h1>
+            <h1 className="hero-heading">
+              Pilah sampahmu dengan tepat sebelum masuk ke wadah
+            </h1>
 
-        {/* Subtitle */}
-        <p className="hero-subtitle animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          Upload foto sampah dan biarkan AI mendeteksi jenisnya secara otomatis —
-          <strong style={{ color: 'var(--organik-primary)' }}> Organik</strong>,
-          <strong style={{ color: 'var(--anorganik-primary)' }}> Anorganik</strong>, atau
-          <strong style={{ color: 'var(--residu-primary)' }}> Residu</strong>.
-          Bantu wujudkan pemilahan sampah yang benar mulai dari rumah.
-        </p>
+            <p className="hero-description">
+              Arahkan kamera atau masukkan gambar sampah. Model visi komputer mengidentifikasi objek ke dalam tiga kategori standar: Organik, Anorganik, dan Residu langsung di peramban Anda.
+            </p>
 
-        {/* CTA buttons */}
-        <div className="hero-actions animate-fade-up" style={{ animationDelay: '0.3s' }}>
-          <a href="#detect" className="btn btn-primary">
-            <span>🔍</span> Deteksi Sekarang
-          </a>
-          <a href="#edukasi" className="btn btn-outline">
-            Pelajari Lebih Lanjut
-          </a>
-        </div>
+            <div className="hero-actions">
+              <a href="#deteksi" className="btn btn-primary">
+                Mulai Inspeksi Foto
+              </a>
+              <a href="#panduan-visual" className="btn btn-secondary">
+                Lihat Panduan Visual
+              </a>
+            </div>
 
-        {/* Stats */}
-        <div className="hero-stats animate-fade-up" style={{ animationDelay: '0.4s' }}>
-          <div className="hero-stat">
-            <span className="hero-stat-value">3</span>
-            <span className="hero-stat-label">Kategori Sampah</span>
+            {/* Quick Metrics */}
+            <div className="hero-stats-row">
+              <div className="hero-stat-block">
+                <span className="stat-number">3</span>
+                <span className="stat-desc">Wadah Pemilahan</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat-block">
+                <span className="stat-number">224 px</span>
+                <span className="stat-desc">Resolusi Pemindaian</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat-block">
+                <span className="stat-number">Lokal</span>
+                <span className="stat-desc">Privasi Foto Terjaga</span>
+              </div>
+            </div>
           </div>
-          <div className="hero-stat-divider" />
-          <div className="hero-stat">
-            <span className="hero-stat-value">AI</span>
-            <span className="hero-stat-label">Berbasis Machine Learning</span>
-          </div>
-          <div className="hero-stat-divider" />
-          <div className="hero-stat">
-            <span className="hero-stat-value">100%</span>
-            <span className="hero-stat-label">Gratis & Offline</span>
+
+          {/* Kolom Kanan: Visualisasi Interaktif 3 Tempat Sampah */}
+          <div className="hero-visual-panel">
+            <div className="bins-selector-header">
+              <span className="bins-panel-title">Tiga Wadah Standar Kota</span>
+              <span className="bins-panel-hint">Klik wadah untuk melihat isi</span>
+            </div>
+
+            <div className="bins-stage" role="tablist" aria-label="Pilih wadah sampah">
+              <button
+                type="button"
+                className={`bin-display-btn ${activeBin === 'organik' ? 'is-active-organik' : ''}`}
+                onClick={() => setActiveBin('organik')}
+                aria-selected={activeBin === 'organik'}
+              >
+                <WasteBinIllustration type="organik" size={72} />
+                <span className="bin-btn-label label-organik">Organik</span>
+              </button>
+
+              <button
+                type="button"
+                className={`bin-display-btn ${activeBin === 'anorganik' ? 'is-active-anorganik' : ''}`}
+                onClick={() => setActiveBin('anorganik')}
+                aria-selected={activeBin === 'anorganik'}
+              >
+                <WasteBinIllustration type="anorganik" size={72} />
+                <span className="bin-btn-label label-anorganik">Anorganik</span>
+              </button>
+
+              <button
+                type="button"
+                className={`bin-display-btn ${activeBin === 'residu' ? 'is-active-residu' : ''}`}
+                onClick={() => setActiveBin('residu')}
+                aria-selected={activeBin === 'residu'}
+              >
+                <WasteBinIllustration type="residu" size={72} />
+                <span className="bin-btn-label label-residu">Residu</span>
+              </button>
+            </div>
+
+            {/* Kartu Detail Bin yang Aktif */}
+            <div className={`bin-preview-card bin-preview-${activeBin}`}>
+              <div className="preview-card-header">
+                <span className="preview-bin-name">{binInfo.title}</span>
+                <span className="preview-bin-cat">{binInfo.subtitle}</span>
+              </div>
+
+              <div className="preview-items-row">
+                {binInfo.items.map((item, idx) => (
+                  <span key={idx} className="preview-item-chip">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Floating waste icons */}
-      <div className="hero-floats" aria-hidden="true">
-        <span className="hero-float-icon" style={{ '--delay': '0s', '--x': '10%', '--y': '20%' }}>🌿</span>
-        <span className="hero-float-icon" style={{ '--delay': '1s', '--x': '85%', '--y': '15%' }}>♻️</span>
-        <span className="hero-float-icon" style={{ '--delay': '0.5s', '--x': '75%', '--y': '70%' }}>⚠️</span>
-        <span className="hero-float-icon" style={{ '--delay': '1.5s', '--x': '15%', '--y': '75%' }}>🗑️</span>
-        <span className="hero-float-icon" style={{ '--delay': '2s', '--x': '50%', '--y': '85%' }}>🌍</span>
       </div>
     </section>
   );

@@ -5,37 +5,42 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="navbar">
-      <div className="container navbar-inner">
-        {/* Logo */}
-        <a href="#" className="navbar-logo">
-          <span className="navbar-logo-icon">🗂️</span>
-          <span className="navbar-logo-text">
-            Pilah<span className="gradient-text">AI</span>
-          </span>
+    <header className="site-header">
+      <div className="container nav-container">
+        <a href="#" className="nav-brand">
+          <span className="brand-title">Pilah</span>
+          <span className="brand-tag">Klasifikasi Limbah</span>
         </a>
 
-        {/* Links */}
-        <ul className={`navbar-links ${menuOpen ? 'open' : ''}`}>
-          <li><a href="#detect" onClick={() => setMenuOpen(false)}>Deteksi</a></li>
-          <li><a href="#edukasi" onClick={() => setMenuOpen(false)}>Edukasi</a></li>
-          <li><a href="#cara-pakai" onClick={() => setMenuOpen(false)}>Cara Pakai</a></li>
-        </ul>
+        <nav className={`nav-menu ${menuOpen ? 'is-open' : ''}`} aria-label="Navigasi utama">
+          <a href="#deteksi" className="nav-link" onClick={() => setMenuOpen(false)}>
+            Inspeksi
+          </a>
+          <a href="#panduan-visual" className="nav-link" onClick={() => setMenuOpen(false)}>
+            Panduan Kategori
+          </a>
+          <a href="#prosedur" className="nav-link" onClick={() => setMenuOpen(false)}>
+            Prosedur
+          </a>
+        </nav>
 
-        {/* CTA */}
-        <a href="#detect" className="btn btn-primary navbar-cta" onClick={() => setMenuOpen(false)}>
-          Mulai Deteksi
-        </a>
+        <div className="nav-actions">
+          <a href="#deteksi" className="btn btn-secondary nav-action-btn">
+            Mulai Uji
+          </a>
 
-        {/* Hamburger */}
-        <button
-          className={`hamburger ${menuOpen ? 'open' : ''}`}
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          <span /><span /><span />
-        </button>
+          <button
+            type="button"
+            className="nav-toggle"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-label="Buka menu navigasi"
+          >
+            <span className="nav-toggle-bar" />
+            <span className="nav-toggle-bar" />
+          </button>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }

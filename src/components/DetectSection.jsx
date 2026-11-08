@@ -1,40 +1,31 @@
 import { useState, useEffect } from 'react';
 import ImageUploader from './ImageUploader';
 import ResultCard from './ResultCard';
+import { AlertIcon } from './Icons';
 import { useWasteDetection } from '../hooks/useWasteDetection';
 import './DetectSection.css';
 
-function LoadingOverlay({ isFirstLoad }) {
+function LoadingState() {
   return (
-    <div className="loading-overlay animate-fade-in">
-      <div className="loading-spinner-wrap">
-        <div className="loading-spinner" />
-        <div className="loading-spinner loading-spinner-2" />
-      </div>
-      <p className="loading-title">
-        {isFirstLoad ? 'Memuat model AI...' : 'Menganalisis sampah...'}
-      </p>
-      <p className="loading-sub">
-        {isFirstLoad
-          ? 'Pertama kali butuh beberapa detik — selanjutnya lebih cepat'
-          : 'ONNX Runtime sedang memproses gambar Anda'}
-      </p>
-      <div className="loading-dots">
-        <span /><span /><span />
+    <div className="detect-loading-panel" role="status" aria-live="polite">
+      <div className="detect-spinner" aria-hidden="true" />
+      <div className="detect-loading-copy">
+        <p className="detect-loading-title">Memproses inferensi citra</p>
+        <p className="detect-loading-sub">
+          Model YOLO sedang mengevaluasi tensor masukan 224x224 piksel melalui WebAssembly.
+        </p>
       </div>
     </div>
   );
 }
 
 export default function DetectSection() {
-  const [selectedImage, setSelectedImage] = useState(null); // { file, url }
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
   const { predict, result, isLoading, error, reset } = useWasteDetection();
 
-  // When image selected, trigger prediction directly with the File/Blob
   useEffect(() => {
     if (selectedImage?.file) {
-      predict(selectedImage.file).then(() => setIsFirstLoad(false));
+      predict(selectedImage.file);
     }
   }, [selectedImage, predict]);
 
@@ -49,32 +40,31 @@ export default function DetectSection() {
   };
 
   return (
-    <section id="detect" className="section detect-section">
+    <section id="deteksi" className="section detect-section">
       <div className="container">
-        {/* Heading */}
-        <div className="section-heading">
-          <span className="section-eyebrow">🔍 Deteksi Sampah</span>
-          <h2>Upload Foto, Dapatkan Hasilnya</h2>
-          <p className="section-subtitle">
-            Ambil foto sampah di sekitar kamu dan biarkan AI mendeteksi jenis serta cara pembuangannya.
+        <div className="section-header">
+          <h2>Inspeksi Sampel Sampah</h2>
+          <p className="section-description">
+            Unggah berkas foto atau gunakan kamera langsung untuk mengidentifikasi klasifikasi material dan memperoleh rekomendasi wadah pemilahan.
           </p>
         </div>
 
-        {/* Detect area */}
-        <div className="detect-area">
+        <div className="detect-workspace">
           {!selectedImage ? (
             <ImageUploader onImageSelect={handleImageSelect} disabled={isLoading} />
           ) : (
-            <div className="detect-result-wrap">
-
-              {isLoading && <LoadingOverlay isFirstLoad={isFirstLoad} />}
+            <div className="detect-stage">
+              {isLoading && <LoadingState />}
 
               {error && (
-                <div className="detect-error animate-fade-in">
-                  <span className="detect-error-icon">⚠️</span>
-                  <p>{error}</p>
-                  <button className="btn btn-outline" onClick={handleReset}>
-                    Coba Lagi
+                <div className="detect-error-box" role="alert">
+                  <AlertIcon size={20} className="detect-error-icon" />
+                  <div className="detect-error-text">
+                    <p className="detect-error-heading">Kesalahan Inferensi</p>
+                    <p className="detect-error-msg">{error}</p>
+                  </div>
+                  <button type="button" className="btn btn-secondary" onClick={handleReset}>
+                    Coba Kembali
                   </button>
                 </div>
               )}
@@ -90,21 +80,32 @@ export default function DetectSection() {
           )}
         </div>
 
-        {/* How to use */}
-        <div id="cara-pakai" className="how-to">
-          <p className="how-to-title">Cara Menggunakan</p>
-          <div className="how-to-steps">
-            {[
-              { icon: '📸', step: '1', text: 'Foto atau pilih gambar sampah' },
-              { icon: '🤖', step: '2', text: 'AI menganalisis secara otomatis' },
-              { icon: '📋', step: '3', text: 'Lihat hasil & cara membuangnya' },
-            ].map(({ icon, step, text }) => (
-              <div className="how-to-step" key={step}>
-                <div className="how-to-step-icon">{icon}</div>
-                <div className="how-to-step-num">Langkah {step}</div>
-                <p className="how-to-step-text">{text}</p>
-              </div>
-            ))}
+        <div id="prosedur" className="workflow-section">
+          <h3 className="workflow-title">Tahapan Pengujian</h3>
+          <div className="workflow-steps">
+            <div className="workflow-step">
+              <span className="step-index">01</span>
+              <h4 className="step-name">Pengambilan citra</h4>
+              <p className="step-desc">
+                Posisikan material sampah di tengah bingkai dengan pencahayaan cukup dan latar belakang yang tidak terlalu ramai.
+              </p>
+            </div>
+
+            <div className="workflow-step">
+              <span className="step-index">02</span>
+              <h4 className="step-name">Ekstraksi dan cropping</h4>
+              <p className="step-desc">
+                Sistem melakukan center crop otomatis dan penskalaan ke resolusi 224x224 piksel tanpa distorsi rasio aspek.
+              </p>
+            </div>
+
+            <div className="workflow-step">
+              <span className="step-index">03</span>
+              <h4 className="step-name">Hasil dan prosedur</h4>
+              <p className="step-desc">
+                Label klasifikasi ditampilkan bersama instruksi wadah penampungan serta waktu penguraian material yang teridentifikasi.
+              </p>
+            </div>
           </div>
         </div>
       </div>

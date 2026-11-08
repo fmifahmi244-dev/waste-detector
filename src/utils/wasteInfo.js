@@ -1,81 +1,78 @@
-// Data edukasi per kategori sampah
+// Data referensi kategori pemilahan sampah sesuai standar pengelolaan limbah
 export const wasteCategories = {
   organik: {
     id: 'organik',
     label: 'Organik',
-    emoji: '🌿',
-    color: 'organik',
+    binColor: 'Hijau',
     description:
-      'Sampah organik berasal dari makhluk hidup dan dapat terurai secara alami oleh mikroorganisme.',
+      'Limbah yang berasal dari sisa makhluk hidup dan dapat terurai secara biologis oleh mikroorganisme tanah.',
     examples: [
-      'Sisa makanan (nasi, lauk, buah)',
-      'Kulit buah & sayuran',
-      'Daun kering & ranting',
-      'Ampas kopi & teh',
-      'Kertas bekas tidak berlapis',
+      'Sisa makanan, nasi, dan sayuran',
+      'Kulit buah dan sisa bahan dapur',
+      'Daun gugur, ranting, dan rumput',
+      'Ampas kopi dan kantong teh kertas',
+      'Kertas karton tanpa lapisan plastik',
     ],
     disposal: [
-      'Masukkan ke tempat sampah hijau 🟢',
-      'Bisa dijadikan kompos / pupuk organik',
-      'Biogas dari sisa makanan',
-      'Hindari mencampur dengan plastik',
+      'Tempatkan pada wadah sampah berwarna hijau.',
+      'Pisahkan dari kantong plastik pembungkus sebelum dibuang.',
+      'Dapat diolah menjadi pupuk kompos atau pakan ternak.',
+      'Pastikan saluran pembuangan tidak tergenang cairan residu asam.',
     ],
     impact:
-      'Jika dikelola dengan benar, sampah organik dapat menjadi sumber daya berharga seperti kompos dan energi biogas yang ramah lingkungan.',
-    recycleTime: '2 minggu – 6 bulan',
+      'Pengolahan kompos mandiri dapat mengurangi beban timbulan sampah di tempat pembuangan akhir hingga 40 persen.',
+    recycleTime: '2 minggu sampai 6 bulan',
   },
   anorganik: {
     id: 'anorganik',
     label: 'Anorganik',
-    emoji: '♻️',
-    color: 'anorganik',
+    binColor: 'Kuning / Biru',
     description:
-      'Sampah anorganik berasal dari bahan non-hayati dan sulit terurai, namun sebagian besar dapat didaur ulang.',
+      'Limbah dari bahan non-hayati atau proses industri yang sulit terurai secara alami, namun sebagian besar bernilai daur ulang.',
     examples: [
-      'Botol & kemasan plastik',
-      'Kaleng minuman & makanan',
-      'Kertas karton & kardus',
-      'Botol kaca',
-      'Logam & besi bekas',
+      'Botol minuman PET dan kemasan detergen HDPE',
+      'Kaleng minuman aluminium dan kaleng biskuit',
+      'Kardus kering dan kertas kantor',
+      'Botol dan toples kaca bening atau berwarna',
+      'Pipa PVC dan perkakas logam bekas',
     ],
     disposal: [
-      'Masukkan ke tempat sampah biru 🔵',
-      'Cuci bersih sebelum dibuang',
-      'Pisahkan berdasarkan jenis material',
-      'Jual ke bank sampah atau pengepul',
+      'Tempatkan pada wadah sampah berwarna biru atau kuning.',
+      'Bilas sisa cairan atau minyak sebelum dikumpulkan.',
+      'Lipat atau pipihkan wadah kardus untuk menghemat ruang tampung.',
+      'Salurkan ke fasilitas bank sampah atau unit daur ulang berizin.',
     ],
     impact:
-      'Daur ulang sampah anorganik dapat menghemat energi hingga 95% dibanding produksi bahan baku baru, sekaligus mengurangi pencemaran lingkungan.',
-    recycleTime: '10 – 1.000 tahun (jika tidak didaur ulang)',
+      'Mendaur ulang satu kaleng aluminium menghemat energi hingga 95 persen dibanding pengolahan bijih bauksit mentah.',
+    recycleTime: '20 sampai 500 tahun tanpa proses daur ulang',
   },
   residu: {
     id: 'residu',
     label: 'Residu',
-    emoji: '⚠️',
-    color: 'residu',
+    binColor: 'Abu-abu / Merah',
     description:
-      'Sampah residu adalah sampah yang tidak dapat didaur ulang maupun terurai dengan mudah dan memerlukan penanganan khusus.',
+      'Limbah yang tidak dapat didaur ulang secara ekonomis dan tidak dapat terurai, memerlukan pemrosesan akhir di fasilitas sanitasi.',
     examples: [
-      'Popok sekali pakai',
-      'Styrofoam / gabus',
-      'Kemasan berlapis / sachet',
-      'Puntung rokok',
-      'Kain dan tekstil tercemar',
+      'Popok bayi dan pembalut sekali pakai',
+      'Kemasan sachet laminasi multipel',
+      'Styrofoam dan busa kemasan makanan',
+      'Puntung rokok dan abu pembakaran',
+      'Kertas foto, kertas minyak, dan lakban kotor',
     ],
     disposal: [
-      'Masukkan ke tempat sampah merah/hitam 🔴',
-      'Jangan dibakar sembarangan',
-      'Bawa ke TPA atau fasilitas khusus',
-      'Kurangi penggunaan produk residu',
+      'Tempatkan pada wadah limbah residu tertutup.',
+      'Bungkus rapat limbah higienis dan sanitasi.',
+      'Jangan membakar limbah residu di pekarangan terbuka.',
+      'Serahkan ke armada pengangkutan resmi menuju TPA berizin.',
     ],
     impact:
-      'Sampah residu yang tidak dikelola dapat mencemari tanah dan air tanah selama ratusan tahun. Upayakan meminimalkan penggunaan produk residu.',
-    recycleTime: '50 – 500+ tahun',
+      'Limbah residu yang tidak dikelola di fasilitas sanitasi berisiko melepaskan zat mikroplastik dan mencemari air tanah.',
+    recycleTime: 'Lebih dari 100 tahun dengan risiko pelepasan polutan',
   },
 };
 
 export const getCategoryData = (label) => {
   if (!label) return null;
-  const key = label.toLowerCase();
+  const key = String(label).toLowerCase().trim();
   return wasteCategories[key] || null;
 };
