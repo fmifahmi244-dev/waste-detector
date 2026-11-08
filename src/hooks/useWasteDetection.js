@@ -4,14 +4,15 @@ import * as ort from 'onnxruntime-web';
 /**
  * useWasteDetection
  *
- * Inference menggunakan model YOLO11n-cls (ONNX) via onnxruntime-web.
+ * Inference menggunakan model YOLO26s-cls (ONNX) via onnxruntime-web.
  * Berjalan 100% di browser via WebAssembly — tidak ada server/API.
  *
- * Model info:
- *   - File    : /public/best.onnx
- *   - Input   : 'images'  → Float32[1, 3, 224, 224]
- *   - Output  : 'output0' → Float32[1, 3]
- *   - Classes : {0: 'Anorganik', 1: 'Organik', 2: 'Residu'}
+ * Model Roboflow Preprocessing Specification:
+ *   - Auto-Orient : Handled via createImageBitmap
+ *   - Static Crop : 25%-75% Horizontal Region, 25%-75% Vertical Region (central 50% box)
+ *   - Resize      : Scaled to 224x224 (model imgsz)
+ *   - Grayscale   : Applied (ITU-R BT.601 standard luminance, replicated to 3 channels)
+ *   - Classes     : {0: 'Anorganik', 1: 'Organik', 2: 'Residu'}
  */
 
 const MODEL_URL    = '/best.onnx';
@@ -23,57 +24,69 @@ const CLASS_LABELS = ['anorganik', 'organik', 'residu'];
 // Konfigurasi ORT
 ort.env.wasm.numThreads = 1; // single-thread, hindari SharedArrayBuffer requirement
 
-// ── Helpers ────────────────────────────────────────────
-
-function softmax(arr) {
-  const max  = Math.max(...arr);
-  const exps = arr.map((x) => Math.exp(x - max));
-  const sum  = exps.reduce((a, b) => a + b, 0);
-  return exps.map((e) => e / sum);
-}
+// ── Preprocessing sesuai spesifikasi Roboflow ──────────
 
 async function preprocessImage(source) {
-  // Ambil dimensi asli gambar (bisa File, HTMLImageElement, atau HTMLVideoElement)
+  // 1. Ambil dimensi asli gambar (Auto-Orient otomatis ditangani browser)
   let srcW, srcH;
+  let imgSource = source;
   if (source instanceof File || source instanceof Blob) {
     const bmp = await createImageBitmap(source);
     srcW = bmp.width;
     srcH = bmp.height;
-    source = bmp; // gunakan bmp sebagai source
+    imgSource = bmp;
   } else {
     srcW = source.naturalWidth || source.videoWidth || source.width;
     srcH = source.naturalHeight || source.videoHeight || source.height;
   }
 
-  // Hitung center crop
-  const size = Math.min(srcW, srcH);
-  const startX = (srcW - size) / 2;
-  const startY = (srcH - size) / 2;
+  // 2. Static Crop: 25-75% Horizontal, 25-75% Vertical
+  // Memotong area tengah 50% lebar dan 50% tinggi gambar
+  const startX = srcW * 0.25;
+  const startY = srcH * 0.25;
+  const cropW  = srcW * 0.50;
+  const cropH  = srcH * 0.50;
 
-  // Render crop area ke canvas 224x224
+  // 3. Resize: Skala ke 224x224 piksel (sesuai imgsz model ONNX)
   const canvas = new OffscreenCanvas(IMG_SIZE, IMG_SIZE);
   const ctx = canvas.getContext('2d');
   
   // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-  ctx.drawImage(source, startX, startY, size, size, 0, 0, IMG_SIZE, IMG_SIZE);
+  ctx.drawImage(imgSource, startX, startY, cropW, cropH, 0, 0, IMG_SIZE, IMG_SIZE);
 
-  if (source instanceof ImageBitmap) {
-    source.close();
+  if (imgSource instanceof ImageBitmap) {
+    imgSource.close();
   }
 
+  // 4. Grayscale: Applied
+  // Ekstrak piksel RGBA dan konversi ke Grayscale (Luminance ITU-R BT.601)
+  // lalu replikasi ke 3 channel tensor [1, 3, 224, 224]
   const { data } = ctx.getImageData(0, 0, IMG_SIZE, IMG_SIZE);
-
   const total = IMG_SIZE * IMG_SIZE;
   const buf   = new Float32Array(3 * total);
 
-  // Normalisasi YOLOv8 (hanya / 255.0)
   for (let i = 0; i < total; i++) {
-    buf[0 * total + i] = data[i * 4]     / 255.0; // R
-    buf[1 * total + i] = data[i * 4 + 1] / 255.0; // G
-    buf[2 * total + i] = data[i * 4 + 2] / 255.0; // B
+    const r = data[i * 4];
+    const g = data[i * 4 + 1];
+    const b = data[i * 4 + 2];
+    
+    // Standar grayscale Roboflow / OpenCV: Y = 0.299*R + 0.587*G + 0.114*B
+    const gray = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0;
+
+    buf[0 * total + i] = gray; // Channel R
+    buf[1 * total + i] = gray; // Channel G
+    buf[2 * total + i] = gray; // Channel B
   }
 
-  return buf;
+  let croppedUrl = null;
+  try {
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+    croppedUrl = URL.createObjectURL(blob);
+  } catch (e) {
+    console.debug('convertToBlob fallback:', e);
+  }
+
+  return { buf, croppedUrl };
 }
 
 // ── Session loader ─────────────────────────────────────
@@ -89,21 +102,21 @@ async function loadSession() {
 // ── Inference ──────────────────────────────────────────
 
 async function runInference(ort, session, source) {
-  const buf    = await preprocessImage(source);
+  const { buf, croppedUrl } = await preprocessImage(source);
   const tensor = new ort.Tensor('float32', buf, [1, 3, IMG_SIZE, IMG_SIZE]);
   const output = await session.run({ [INPUT_NAME]: tensor });
 
-  // FIX: Model YOLO ONNX sudah apply softmax internal (output sum = 1.0).
-  // JANGAN apply softmax lagi — double softmax menyebabkan output stuck di 58/21/21.
+  // Model YOLO ONNX sudah menyertakan softmax internal (output sum = 1.0)
   const probs  = Array.from(output[OUTPUT_NAME].data);
   const maxIdx = probs.indexOf(Math.max(...probs));
 
-  console.debug('[ONNX] Probabilities (direct):', probs);
+  console.debug('[ONNX] Probabilitas hasil evaluasi (Roboflow Preproc):', probs);
 
   return {
     label:      CLASS_LABELS[maxIdx],
     confidence: probs[maxIdx],
     scores:     CLASS_LABELS.map((lbl, i) => ({ label: lbl, score: probs[i] })),
+    croppedUrl: croppedUrl,
   };
 }
 

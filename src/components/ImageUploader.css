@@ -277,16 +277,15 @@
   transform: scaleX(-1);
 }
 
-/* Reticle / scanner corners */
+/* Reticle / scanner corners mencerminkan crop Roboflow 25%-75% */
 .camera-target-reticle {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 224px;
-  height: 224px;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
   pointer-events: none;
-  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: flex-end;
   justify-content: center;
