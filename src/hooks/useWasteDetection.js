@@ -7,11 +7,11 @@ import * as ort from 'onnxruntime-web';
  * Inference menggunakan model YOLO26s-cls (ONNX) via onnxruntime-web.
  * Berjalan 100% di browser via WebAssembly — tidak ada server/API.
  *
- * Model Roboflow Preprocessing Specification:
- *   - Auto-Orient : Handled via createImageBitmap
- *   - Static Crop : 25%-75% Horizontal Region, 25%-75% Vertical Region (central 50% box)
- *   - Resize      : Scaled to 224x224 (model imgsz)
- *   - Grayscale   : Applied (ITU-R BT.601 standard luminance, replicated to 3 channels)
+ * Model Preprocessing:
+ *   - Auto-Orient : Handled via createImageBitmap (dipertahankan)
+ *   - Crop        : Dihapus (seluruh gambar penuh diskalakan ke 224x224)
+ *   - Color       : Warna asli RGB penuh (Grayscale Roboflow dihapus)
+ *   - Skala       : Float32 [0.0, 1.0] (dibagi 255.0)
  *   - Classes     : {0: 'Anorganik', 1: 'Organik', 2: 'Residu'}
  */
 
@@ -51,24 +51,15 @@ async function preprocessImage(source) {
     imgSource.close();
   }
 
-  // 4. Grayscale: Applied
-  // Ekstrak piksel RGBA dan konversi ke Grayscale (Luminance ITU-R BT.601)
-  // lalu replikasi ke 3 channel tensor [1, 3, 224, 224]
+  // 3. Warna RGB murni (Grayscale Roboflow dihapus)
   const { data } = ctx.getImageData(0, 0, IMG_SIZE, IMG_SIZE);
   const total = IMG_SIZE * IMG_SIZE;
   const buf   = new Float32Array(3 * total);
 
   for (let i = 0; i < total; i++) {
-    const r = data[i * 4];
-    const g = data[i * 4 + 1];
-    const b = data[i * 4 + 2];
-    
-    // Standar grayscale Roboflow / OpenCV: Y = 0.299*R + 0.587*G + 0.114*B
-    const gray = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0;
-
-    buf[0 * total + i] = gray; // Channel R
-    buf[1 * total + i] = gray; // Channel G
-    buf[2 * total + i] = gray; // Channel B
+    buf[0 * total + i] = data[i * 4]     / 255.0; // Channel R
+    buf[1 * total + i] = data[i * 4 + 1] / 255.0; // Channel G
+    buf[2 * total + i] = data[i * 4 + 2] / 255.0; // Channel B
   }
 
   let croppedUrl = null;
