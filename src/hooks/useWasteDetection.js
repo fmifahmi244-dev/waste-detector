@@ -129,25 +129,52 @@ export function useWasteDetection() {
 
   const cacheRef = useRef(null);
 
-  const predict = useCallback(async (imgEl) => {
-    setIsLoading(true);
-    setResult(null);
-    setError(null);
+  const predict = useCallback(async (imgSource) => {
+  setIsLoading(true);
+  setResult(null);
+  setError(null);
 
-    try {
-      if (!cacheRef.current) {
-        cacheRef.current = await loadSession();
-      }
-      const { ort, session } = cacheRef.current;
-      const prediction = await runInference(ort, session, imgEl);
-      setResult(prediction);
-    } catch (err) {
-      console.error('[ONNX] Inference error:', err);
-      setError('Deteksi gagal: ' + (err?.message ?? 'Error tidak diketahui'));
-    } finally {
-      setIsLoading(false);
+  try {
+    // Catat apakah model sudah pernah dimuat
+    const isFirstInference = !cacheRef.current;
+
+    // Mulai pengukuran
+    const startTime = performance.now();
+
+    // Load model hanya jika belum tersedia
+    if (isFirstInference) {
+      cacheRef.current = await loadSession();
     }
-  }, []);
+
+    const { ort, session } = cacheRef.current;
+
+    // Preprocessing + inference
+    const prediction = await runInference(ort, session, imgSource);
+
+    // Akhiri pengukuran
+    const endTime = performance.now();
+    const latency = endTime - startTime;
+
+    // Simpan informasi pengukuran
+    const benchmark = {
+      type: isFirstInference ? 'First Inference' : 'Subsequent Inference',
+      latencyMs: Number(latency.toFixed(2)),
+    };
+
+    console.log('[BENCHMARK]', benchmark);
+
+    setResult({
+      ...prediction,
+      benchmark,
+    });
+
+  } catch (err) {
+    console.error('[ONNX] Inference error:', err);
+    setError('Deteksi gagal: ' + (err?.message ?? 'Error tidak diketahui'));
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   const reset = useCallback(() => {
     setResult(null);
