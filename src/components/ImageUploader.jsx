@@ -281,15 +281,6 @@ function CameraTab({ onImageSelect, disabled }) {
           muted
           aria-label="Tampilan pemindaian kamera langsung"
         />
-
-        {/* Reticle / target pemindaian di tengah */}
-        <div className="camera-target-reticle" aria-hidden="true">
-          <span className="reticle-corner reticle-tl" />
-          <span className="reticle-corner reticle-tr" />
-          <span className="reticle-corner reticle-bl" />
-          <span className="reticle-corner reticle-br" />
-          <span className="reticle-hint">Posisikan objek di kotak ini</span>
-        </div>
       </div>
 
       {camState === 'active' && (

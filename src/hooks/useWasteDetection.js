@@ -40,19 +40,12 @@ async function preprocessImage(source) {
     srcH = source.naturalHeight || source.videoHeight || source.height;
   }
 
-  // 2. Static Crop: 25-75% Horizontal, 25-75% Vertical
-  // Memotong area tengah 50% lebar dan 50% tinggi gambar
-  const startX = srcW * 0.25;
-  const startY = srcH * 0.25;
-  const cropW  = srcW * 0.50;
-  const cropH  = srcH * 0.50;
-
-  // 3. Resize: Skala ke 224x224 piksel (sesuai imgsz model ONNX)
+  // 2. Resize langsung ke 224x224 piksel (TANPA CROP, skala seluruh gambar)
   const canvas = new OffscreenCanvas(IMG_SIZE, IMG_SIZE);
   const ctx = canvas.getContext('2d');
   
-  // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-  ctx.drawImage(imgSource, startX, startY, cropW, cropH, 0, 0, IMG_SIZE, IMG_SIZE);
+  // Render seluruh gambar ke kanvas 224x224
+  ctx.drawImage(imgSource, 0, 0, IMG_SIZE, IMG_SIZE);
 
   if (imgSource instanceof ImageBitmap) {
     imgSource.close();

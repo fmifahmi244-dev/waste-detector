@@ -48,12 +48,6 @@ export default function ResultCard({ result, imageUrl, onReset }) {
         <div className="result-preview-panel">
           <div className="result-image-box">
             <img src={imageUrl} alt="Sampel sampah yang diuji" className="result-image" />
-            <div className="result-image-overlay-reticle" aria-hidden="true">
-              <span className="reticle-tl" />
-              <span className="reticle-tr" />
-              <span className="reticle-bl" />
-              <span className="reticle-br" />
-            </div>
           </div>
 
           <div className="result-meta-row">
